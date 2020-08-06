@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "app.fullname" . }}
+  labels:
+    app: {{ template "app.name" . }}
+    chart: {{ template "app.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.pod.replicas }}
+  selector:
+    matchLabels:
+      app: {{ template "app.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "app.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      priorityClassName: system-cluster-critical
+      affinity:
+        # Do not co-locate multiple keepalived pods on a single node.
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ template "app.name" . }}
+            topologyKey: "kubernetes.io/hostname"
+      {{- if .Values.pod.affinity }}
+{{ toYaml .Values.pod.affinity | indent 8 }}
+      {{- end }}
+      {{- if .Values.pod.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.pod.nodeSelector | indent 8 }}
+      {{- end }}
+      tolerations:
+      # If the node becomes network partitioned or unresponsive
+      # then we like the VIP to be released/moved as quickly as possible.
+      # The default toleration seconds for these taints would be 60 seconds otherwise.
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 5
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 5
+      {{- if .Values.pod.tolerations }}
+{{ toYaml .Values.pod.tolerations | indent 6 }}
+      {{- end }}
+      {{- if .Values.pod.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      serviceAccountName: {{ template "app.serviceAccountName" . }}
+      hostNetwork: true
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.keepalived.enableDebugLog }}
+        args: ["debug"]
+        {{- end }}
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN"]
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "app.fullname" . }}
+              key: password
+        - name: VRRP_IFACE
+          value: {{ .Values.keepalived.vrrpInterfaceName }}
+        - name: VIP_IFACE
+          value: {{ .Values.keepalived.vipInterfaceName }}
+        - name: VIP_ADDR_CIDR
+          value: {{ .Values.keepalived.vipAddressCidr }}
+        - name: VIRTUAL_ROUTER_ID
+          value: {{ .Values.keepalived.virtualRouterId }}
+        {{- if .Values.pod.extraEnv }}
+{{ toYaml .Values.pod.extraEnv | indent 8 }}
+        {{- end }}
+        resources:
+        {{- if .Values.pod.resources }}
+{{ toYaml .Values.pod.resources | indent 10 }}
+        {{- end }}

@@ -1,0 +1,51 @@
+global_defs {
+  vrrp_garp_master_delay 5
+  vrrp_garp_master_refresh 60
+  vrrp_garp_lower_prio_repeat 1
+}
+
+vrrp_script chk_ingress {
+  # Wrap in timeout as a workaround for https://github.com/acassen/keepalived/issues/1364
+  script "/usr/bin/timeout 1.9 /opt/bin/vrrp_check.sh HEALTHZ {{ var "INGRESS_HEALTHZ_URL" | default "http://127.0.0.1:10254/healthz" }}"
+  interval 2
+  timeout 2
+  fall 3
+  rise 3
+}
+
+vrrp_script chk_kubelet {
+  script "/usr/bin/timeout 1.9 /opt/bin/vrrp_check.sh HEALTHZ {{ var "KUBELET_HEALTHZ_URL" | default "http://127.0.0.1:10248/healthz" }}"
+  interval 2
+  timeout 2
+  fall 3
+  rise 3
+}
+
+vrrp_script chk_node_ready {
+  script "/usr/bin/timeout 4.9 /opt/bin/vrrp_check.sh NODEREADY {{ var "NODE_NAME" }}"
+  interval 5
+  timeout 5
+  fall 3
+  rise 3
+}
+
+vrrp_instance INGRESS_VIP {
+  interface {{ var "VRRP_IFACE" | default "eth0" }}
+  virtual_router_id {{ var "VIRTUAL_ROUTER_ID" | default "10" }}
+  state BACKUP
+  nopreempt
+  priority 100
+  advert_int 1
+  virtual_ipaddress {
+    {{ var "VIP_ADDR_CIDR" }} dev {{ var "VIP_IFACE" | default "eth0" }}
+  }
+  track_script {
+    chk_ingress
+    chk_kubelet
+    chk_node_ready
+  }
+  authentication {
+    auth_type PASS
+    auth_pass {{ var "AUTH_PASSWORD" }}
+  }
+}

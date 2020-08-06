@@ -1,0 +1,12 @@
+apiVersion: v1
+description: Manage a VRRP-based VIP for Kubernetes Ingress Controller
+icon: https://raw.githubusercontent.com/janeczku/keepalived-ingress-vip/master/chart/icon.svg
+name: keepalived-ingress-vip
+version: v0.1.2
+appVersion: v0.1.2
+home: https://www.github.com/janeczku/keepalived-ingress-vip
+sources:
+- https://www.github.com/janeczku/keepalived-ingress-vip
+maintainers:
+- name: janeczku
+  email: jan@rancher.com
