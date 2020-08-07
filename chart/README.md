@@ -54,10 +54,11 @@ The following table lists the configurable parameters of this chart and their de
 | `keepalived.vipInterfaceName`       | The host network interface name to attach the VIP to.            | `eth0`                                              |
 | `keepalived.vipAddressCidr`         | The Virtual IP address to use (in CIDR notation, e.g. `192.168.11.2/24`) | ``                                          |
 | `keepalived.virtualRouterId`        | A unique numeric Keepalived Router ID.                           | `10`                                                |
+| `keepalived.vrrpNoPreempt`          | Enable the Keepalived "nopreempt" option                         | `false`                                                |
 | `keepalived.ingressHealthzUrl`      | The URL to poll to determine Ingress health (expect HTTP status code 200) | `http://127.0.0.1:10254/healthz`           |
 | `keepalived.kubeletHealthzUrl`      | The URL to poll to determine Kubelet health (expect HTTP status code 200) | `http://127.0.0.1:10248/healthz`           |
 | `image.repository`                  | Image repository to pull from                                    | `janeczku/keepalived-ingress-vip`                   |
-| `image.tag`                         | Image tag to pull                                                | `v0.1.1`                                            |
+| `image.tag`                         | Image tag to pull                                                | `v0.1.3`                                            |
 | `image.pullPolicy`                  | Image pull policy                                                | `IfNotPresent`                                      |
 | `rbac.create`                       | Whether to create the required RBAC resources                    | `true`                                              |
 | `rbac.pspEnabled`                   | Whether to create the required PodSecurityPolicy                 | `false`                                             |

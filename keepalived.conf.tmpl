@@ -2,11 +2,12 @@ global_defs {
   vrrp_garp_master_delay 5
   vrrp_garp_master_refresh 60
   vrrp_garp_lower_prio_repeat 1
+  enable_script_security
 }
 
 vrrp_script chk_ingress {
   # Wrap in timeout as a workaround for https://github.com/acassen/keepalived/issues/1364
-  script "/usr/bin/timeout 1.9 /opt/bin/vrrp_check.sh HEALTHZ {{ var "INGRESS_HEALTHZ_URL" | default "http://127.0.0.1:10254/healthz" }}"
+  script "/opt/bin/vrrp_check.sh URL_CHECK {{ var "INGRESS_HEALTHZ_URL" | default "http://127.0.0.1:10254/healthz" }} 2"
   interval 2
   timeout 2
   fall 3
@@ -14,15 +15,23 @@ vrrp_script chk_ingress {
 }
 
 vrrp_script chk_kubelet {
-  script "/usr/bin/timeout 1.9 /opt/bin/vrrp_check.sh HEALTHZ {{ var "KUBELET_HEALTHZ_URL" | default "http://127.0.0.1:10248/healthz" }}"
+  script "/opt/bin/vrrp_check.sh URL_CHECK {{ var "KUBELET_HEALTHZ_URL" | default "http://127.0.0.1:10248/healthz" }} 2"
   interval 2
   timeout 2
   fall 3
   rise 3
 }
 
+vrrp_script chk_kubeapi {
+  script "/opt/bin/vrrp_check.sh API_CHECK"
+  interval 2
+  timeout 5
+  fall 5
+  rise 3
+}
+
 vrrp_script chk_node_ready {
-  script "/usr/bin/timeout 4.9 /opt/bin/vrrp_check.sh NODEREADY {{ var "NODE_NAME" }}"
+  script "/opt/bin/vrrp_check.sh NODE_READY"
   interval 5
   timeout 5
   fall 3
@@ -33,7 +42,11 @@ vrrp_instance INGRESS_VIP {
   interface {{ var "VRRP_IFACE" | default "eth0" }}
   virtual_router_id {{ var "VIRTUAL_ROUTER_ID" | default "10" }}
   state BACKUP
+  {{ if eq (var "VRRP_NOPREEMPT" | lower) "true" }}
   nopreempt
+  {{else}}
+  preempt_delay 5
+  {{ end }}
   priority 100
   advert_int 1
   virtual_ipaddress {
@@ -42,7 +55,8 @@ vrrp_instance INGRESS_VIP {
   track_script {
     chk_ingress
     chk_kubelet
-    chk_node_ready
+    chk_node_ready weight -40
+    chk_kubeapi weight -40
   }
   authentication {
     auth_type PASS

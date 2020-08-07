@@ -87,6 +87,8 @@ spec:
           value: {{ .Values.keepalived.vipAddressCidr }}
         - name: VIRTUAL_ROUTER_ID
           value: {{ .Values.keepalived.virtualRouterId }}
+        - name: VRRP_NOPREEMPT
+          value: {{ .Values.keepalived.vrrpNoPreempt }}
         {{- if .Values.pod.extraEnv }}
 {{ toYaml .Values.pod.extraEnv | indent 8 }}
         {{- end }}
