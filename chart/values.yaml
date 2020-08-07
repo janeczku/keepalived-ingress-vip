@@ -5,6 +5,7 @@ image:
 
 keepalived:
   enableDebug: false
+  authPassword:
   vrrpInterfaceName:
   vipInterfaceName:
   vipAddressCidr: 
