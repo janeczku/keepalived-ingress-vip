@@ -29,7 +29,7 @@ Afterwards, you can launch the chart from the System project's __Apps__ page pro
 To run the application using the virtual IP `172.16.135.2/21` on the host interface named `ens160`:
 
 ```bash
-$ helm install -n vip --name keepalived-ingress-vip ./chart \
+$ helm install -n vip keepalived-ingress-vip ./chart \
   --set keepalived.vrrpInterfaceName=ens160 \
   --set keepalived.vipInterfaceName=ens160 \
   --set keepalived.vipAddressCidr="172.16.135.2/21"
