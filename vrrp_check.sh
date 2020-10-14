@@ -47,15 +47,16 @@ is_node_ready() {
 }
 
 ARG_TYPE=$1
-ARG_URL=$2
-ARG_TIMEOUT=${3:-$DEFAULT_TIMEOUT}
 
 case $ARG_TYPE in
-    "URL_CHECK") res=$(do_curl "$ARG_URL" "$ARG_TIMEOUT")
+    "URL_CHECK") checkurl=$2
+	             timeout=${3:-$DEFAULT_TIMEOUT}
+	             res=$(do_curl "$checkurl" "$timeout")
                  exit
                  ;;
-    "API_CHECK") url=$(build_kubeapi_url /healthz)
-                 res=$(do_curl "$url" "$DEFAULT_TIMEOUT")
+    "API_CHECK") timeout=${2:-$DEFAULT_TIMEOUT}
+	             checkurl=$(build_kubeapi_url /healthz)
+                 res=$(do_curl "$checkurl" "$timeout")
                  exit
                  ;;
     "NODE_READY") is_node_ready

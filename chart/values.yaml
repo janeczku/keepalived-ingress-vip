@@ -1,32 +1,58 @@
 image:
   repository: janeczku/keepalived-ingress-vip
-  tag: v0.1.3
+  tag: v0.1.4
   pullPolicy: IfNotPresent
 
 keepalived:
-  enableDebug: false
+  debug: false
   authPassword:
   vrrpInterfaceName:
   vipInterfaceName:
   vipAddressCidr: 
   virtualRouterId:
   vrrpNoPreempt: false
-  ingressHealthzUrl:
-  kubeletHealthzUrl:
+  checkServiceUrl: "http://127.0.0.1:10254/healthz"
+  checkServiceInterval: 2
+  checkServiceFailAfter: 2
+  checkKubelet: true
+  checkKubeletInterval: 5
+  checkKubeletFailAfter: 5
+  checkKubeletUrl: "http://127.0.0.1:10248/healthz"
+  checkKubeApi: true
+  checkKubeApiInterval: 5
+  checkKubeApiFailAfter: 5
+  
+# Deployment or DaemonSet
+kind: Deployment
 
 pod:
   replicas: 2
+  priorityClassName: system-cluster-critical
   nodeSelector: {}
-  tolerations: []
+  tolerateMasterTaints: false
+  tolerations:
+  # If the the node becomes tainted as unreachable or not-ready one would typically want
+  # the Keepalived instance to be migrated to healthy node without much delay.
+  # Setting the tolerationSeconds value too low might cause the VIP to be evicted during a
+  # scheduled upgrade of the Kubelet (which might be the desired behaviour in most cases anyways).
+  - key: "node.kubernetes.io/unreachable"
+    operator: "Exists"
+    effect: "NoExecute"
+    tolerationSeconds: 15
+  - key: "node.kubernetes.io/not-ready"
+    operator: "Exists"
+    effect: "NoExecute"
+    tolerationSeconds: 15
   affinity: {}
   imagePullSecrets: []
   extraEnv: []
   resources:
     requests:
       cpu: 80m
-      memory: 6Mi
+      memory: 10Mi
     limits:
-      memory: 12Mi
+      cpu: 80m
+      memory: 10Mi
 
 rbac:
   # Whether the required RBAC resources should be created
