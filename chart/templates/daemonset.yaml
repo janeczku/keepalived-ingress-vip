@@ -1,6 +1,6 @@
-{{- if eq (.Values.kind  | lower) "deployment" }}
+{{- if eq (.Values.kind  | lower) "daemonset" }}
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: {{ template "app.fullname" . }}
   labels:
@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.pod.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ template "app.name" . }}
@@ -21,18 +20,8 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       priorityClassName: {{ .Values.pod.priorityClassName }}
-      affinity:
-        # Do not co-locate multiple keepalived pods on a single node.
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app.kubernetes.io/name
-                operator: In
-                values:
-                - {{ template "app.name" . }}
-            topologyKey: "kubernetes.io/hostname"
       {{- if .Values.pod.affinity }}
+      affinity:
 {{ toYaml .Values.pod.affinity | indent 8 }}
       {{- end }}
       {{- if .Values.pod.nodeSelector }}
@@ -47,7 +36,6 @@ spec:
       {{- end }}
       serviceAccountName: {{ template "app.serviceAccountName" . }}
       hostNetwork: true
-      terminationGracePeriodSeconds: 10
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

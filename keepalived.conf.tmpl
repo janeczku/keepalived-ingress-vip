@@ -5,40 +5,30 @@ global_defs {
   enable_script_security
 }
 
-vrrp_script chk_ingress {
+vrrp_script chk_url{
   # Wrap in timeout as a workaround for https://github.com/acassen/keepalived/issues/1364
-  script "/opt/bin/vrrp_check.sh URL_CHECK {{ var "INGRESS_HEALTHZ_URL" | default "http://127.0.0.1:10254/healthz" }} 2"
-  interval 2
-  timeout 2
-  fall 3
-  rise 3
+  # timeout must be lower than interval to prevent keepalived log spam (e.g. "process ... terminated with signal 15")
+  script "/bin/bash -c '/usr/bin/timeout $(echo {{ var "CHECK_SERVICE_INTERVAL" | default "2" }}*0.9|bc) /opt/bin/vrrp_check.sh URL_CHECK {{ var "CHECK_SERVICE_URL" | default "http://127.0.0.1:10254/healthz" }}'"
+  interval {{ var "CHECK_SERVICE_INTERVAL" | default "2" }}
+  fall {{ var "CHECK_SERVICE_FAILAFTER" | default "2" }}
+  rise 2
 }
 
 vrrp_script chk_kubelet {
-  script "/opt/bin/vrrp_check.sh URL_CHECK {{ var "KUBELET_HEALTHZ_URL" | default "http://127.0.0.1:10248/healthz" }} 2"
-  interval 2
-  timeout 2
-  fall 3
-  rise 3
+  script "/bin/bash -c '/usr/bin/timeout $(echo {{ var "CHECK_KUBELET_INTERVAL" | default "5" }}*0.9|bc) /opt/bin/vrrp_check.sh URL_CHECK {{ var "CHECK_KUBELET_URL" | default "http://127.0.0.1:10248/healthz" }}'"
+  interval {{ var "CHECK_KUBELET_INTERVAL" | default "5" }}
+  fall {{ var "CHECK_KUBELET_FAILAFTER" | default "5" }}
+  rise 2
 }
 
 vrrp_script chk_kubeapi {
-  script "/opt/bin/vrrp_check.sh API_CHECK"
-  interval 2
-  timeout 5
-  fall 5
-  rise 3
+  script "/bin/bash -c '/usr/bin/timeout $(echo {{ var "CHECK_KUBEAPI_INTERVAL" | default "5" }}*0.9|bc) /opt/bin/vrrp_check.sh API_CHECK'"
+  interval {{ var "CHECK_KUBEAPI_INTERVAL" | default "5" }}
+  fall {{ var "CHECK_KUBEAPI_FAILAFTER" | default "5" }}
+  rise 2
 }
 
-vrrp_script chk_node_ready {
-  script "/opt/bin/vrrp_check.sh NODE_READY"
-  interval 5
-  timeout 5
-  fall 3
-  rise 3
-}
-
-vrrp_instance INGRESS_VIP {
+vrrp_instance CLUSTER_VIP {
   interface {{ var "VRRP_IFACE" | default "eth0" }}
   virtual_router_id {{ var "VIRTUAL_ROUTER_ID" | default "10" }}
   state BACKUP
@@ -53,10 +43,13 @@ vrrp_instance INGRESS_VIP {
     {{ var "VIP_ADDR_CIDR" }} dev {{ var "VIP_IFACE" | default "eth0" }}
   }
   track_script {
-    chk_ingress
+    chk_url
+	{{ if eq (var "CHECK_KUBELET" | lower) "true" }}
     chk_kubelet
-    chk_node_ready weight -40
+	{{ end }}
+	{{ if eq (var "CHECK_KUBEAPI" | lower) "true" }}
     chk_kubeapi weight -40
+	{{ end }}
   }
   authentication {
     auth_type PASS
