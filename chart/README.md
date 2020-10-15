@@ -82,6 +82,30 @@ pod:
 
 #### Provision a VIP as a high available K8s API endpoint for a multi-master cluster
 
+```
+                       API Client
+                          +
+                          |
+                          |
+                          v
+                    +-----+------+
+         +---------   Virtual IP   --------+
+         |           172.16.135.5          |
+         |          +------------+         |
+         |                                 |
+         |                                 |
++--------+--------+              +---------v-------+
+| eth0 10.173.20.2|              |eth0 10.173.20.3 |
+|                 |              |                 |
+|  +-----------+  |     VRRP     |  +------------+ |
+|  |  Kube API |  | <----------> |  |  Kube API  | |
+|  +-----------+  |   Failover   |  +------------+ |
+|                 |              |                 |
+| K8s Master Node |              | K8s Master Node |
++-----------------+              +-----------------+
+```
+
+
 Example Helm values.yaml:
 
 ```yaml
