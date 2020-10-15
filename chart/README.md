@@ -147,29 +147,21 @@ metadata:
   namespace: kube-system
 spec:
   chart: keepalived-ingress-vip
-  version: 0.1.4
+  version: v0.1.4
   repo: https://janeczku.github.io/helm-charts/
-  targetNamespace: keepalived
+  targetNamespace: kube-system
   valuesContent: |-
     keepalived:
-      # interface used for the VRRP protocol
-      vrrpInterfaceName: ens160
-      # interface to attach the VIP to
-      vipInterfaceName: ens160
-      # The floating IP address in CIDR format
+      vrrpInterfaceName: eth0
+      vipInterfaceName: eth0
       vipAddressCidr: "172.16.135.2/21"
-      # Health check the local K3s API endpoint
-      checkServiceUrl: http://127.0.0.1:6443/healthz
+      checkServiceUrl: https://127.0.0.1:6443/healthz
       checkKubelet: false
       checkKubeApi: false
-    # Daemonset is used because we always want a Keepalived instance on every master node
     kind: Daemonset
     pod:
-      # Schedule the VIP only to master nodes
       nodeSelector:
-        node-role.kubernetes.io/controlplane: "true"
-      # Tolerate master taints 
-      tolerateMasterTaints: true
+        node-role.kubernetes.io/master: "true"
 ````
 
 Once the k3s cluster is bootstrapped you can point your Kubernetes client to: `https://VIP:6443`.
