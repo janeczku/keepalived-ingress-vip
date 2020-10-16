@@ -53,7 +53,7 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.keepalived.debug }}
-        args: ["debug"]
+        args: [ "/usr/sbin/keepalived", "-l", "-n", "-f", "/etc/keepalived/keepalived.conf", "-D" ]
         {{- end }}
         securityContext:
           capabilities:
