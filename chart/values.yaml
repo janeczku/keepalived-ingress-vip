@@ -1,6 +1,6 @@
 image:
   repository: janeczku/keepalived-ingress-vip
-  tag: v0.1.4
+  tag: v0.1.5
   pullPolicy: IfNotPresent
 
 keepalived:
@@ -11,6 +11,7 @@ keepalived:
   vipAddressCidr: 
   virtualRouterId:
   vrrpNoPreempt: false
+  # Default to the healthz endpoint of the NGINX Ingress Controller
   checkServiceUrl: "http://127.0.0.1:10254/healthz"
   checkServiceInterval: 2
   checkServiceFailAfter: 2
