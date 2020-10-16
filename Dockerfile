@@ -1,9 +1,10 @@
 FROM alpine:3.12.0
 
 ENV ENTRYKIT_VERSION=0.4.0 \
-    ENTRYKIT_BASEURL=https://github.com/progrium/entrykit/releases/download
+    ENTRYKIT_BASEURL=https://github.com/progrium/entrykit/releases/download \
+    KEEPALIVED_VERSION=2.0.20-r0
 
-RUN apk add --no-cache ca-certificates bash coreutils curl net-tools jq keepalived \
+RUN apk add --no-cache ca-certificates bash coreutils curl net-tools jq keepalived=${KEEPALIVED_VERSION} \
   && rm -f /etc/keepalived/keepalived.conf \
   && addgroup -S keepalived_script && adduser -D -S -G keepalived_script keepalived_script
 

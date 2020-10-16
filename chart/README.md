@@ -47,7 +47,31 @@ $ helm delete -n vip keepalived-ingress-vip
 
 ### Example Configurations
 
-#### Provision a VIP as a high available endpoint for cluster ingress (e.g. NGINX Ingress Controller)
+#### Provision a VIP for high availabilty of cluster ingress (e.g. NGINX Ingress Controller)
+
+```
+                  Application Client
+                          +
+                          |
+                          |
+                          v
+                    +-----+-------+
+         +--------- |  Virtual IP |----------+
+         |          | 172.16.135.5|          |
+         |          +------------+           |
+         |                                   |
+ eth0    | 10.173.20.2               eth0    | 10.173.20.3
++--------+----------+              +-------------------+
+|        |          |              |         |         |
+|        -          |              |         v         |
+| nodePort/hostPort |              | nodePort/hostPort |
+|  +-----------+    |     VRRP     |  +------------+   |
+|  |  Ingress  |    | <----------> |  |  Ingress   |   |
+|  +-----------+    |   Failover   |  +------------+   |
+|                   |              |                   |
+|  K8s Worker Node  |              |  K8s Worker Node  |
++-------------------+              +-------------------+
+```
 
 Example Helm values.yaml:
 
@@ -80,31 +104,32 @@ pod:
     nodeRole: ingress
 ```
 
-#### Provision a VIP as a high available K8s API endpoint for a multi-master cluster
+#### Provision a VIP as a high available endpoint for Kubernetes API
+
 
 ```
-                       API Client
+                 Kubernetes API Client
                           +
                           |
                           |
                           v
-                    +-----+------+
-         +---------   Virtual IP   --------+
-         |           172.16.135.5          |
-         |          +------------+         |
-         |                                 |
-         |                                 |
-+--------+--------+              +---------v-------+
-| eth0 10.173.20.2|              |eth0 10.173.20.3 |
-|                 |              |                 |
-|  +-----------+  |     VRRP     |  +------------+ |
-|  |  Kube API |  | <----------> |  |  Kube API  | |
-|  +-----------+  |   Failover   |  +------------+ |
-|                 |              |                 |
-| K8s Master Node |              | K8s Master Node |
-+-----------------+              +-----------------+
+                    +-----+-------+
+         +--------- |  Virtual IP |----------+
+         |          | 172.16.135.5|          |
+         |          +------------+           |
+         |                                   |
+ eth0    | 10.173.20.2               eth0    | 10.173.20.3
++--------+----------+              +-------------------+
+|        |          |              |         |         |
+|        -          |              |         v         |
+|     hostPort      |              |      hostPort     |
+|  +------------+   |     VRRP     |  +------------+   |
+|  | Kube API   |   | <----------> |  | Kube API .  |  |
+|  +------------+   |   Failover   |  +------------+   |
+|                   |              |                   |
+|  K8s Master Node  |              |  K8s Master Node  |
++-------------------+              +-------------------+
 ```
-
 
 Example Helm values.yaml:
 
@@ -133,7 +158,7 @@ pod:
   tolerateMasterTaints: true
 ```
 
-#### Provide a VIP as an high available API endpoint for k3s clusters
+#### Provide a VIP as a high available endpoint for k3s clusters API
 
 You can package a Helm resource file with k3s that will automatically attach a floating IP to a healthy master during cluster bootstrapping.
 
@@ -147,7 +172,7 @@ metadata:
   namespace: kube-system
 spec:
   chart: keepalived-ingress-vip
-  version: v0.1.4
+  version: v0.1.5
   repo: https://janeczku.github.io/helm-charts/
   targetNamespace: kube-system
   valuesContent: |-
@@ -164,7 +189,7 @@ spec:
         node-role.kubernetes.io/master: "true"
 ````
 
-Once the k3s cluster is bootstrapped you can point your Kubernetes client to: `https://VIP:6443`.
+Once the k3s cluster is bootstrapped you can point your Kubernetes client to: `https://<VIP>:6443`.
 
 
 ### Configuration Reference
@@ -192,7 +217,7 @@ The following table lists the configurable parameters of this chart and their de
 | `keepalived.checkKubeApiFailAfter`  | Number of failed K8s API health checks before reducing priority of the keepalived instance (VIP may then be moved to a higher priority instance) | `5` |
 | `kind`                              | The deployment resource to create for the Keepalived pods (one of 'Deployment' or 'Daemonset') | `Deployment`          |
 | `image.repository`                  | Image repository to pull from                                    | `janeczku/keepalived-ingress-vip`                   |
-| `image.tag`                         | Image tag to pull                                                | `v0.1.4`                                            |
+| `image.tag`                         | Image tag to pull                                                | `v0.1.5`                                            |
 | `image.pullPolicy`                  | Image pull policy                                                | `IfNotPresent`                                      |
 | `rbac.create`                       | Whether to create the required RBAC resources                    | `true`                                              |
 | `rbac.pspEnabled`                   | Whether to create the required PodSecurityPolicy                 | `false`                                             |
