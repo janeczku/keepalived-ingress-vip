@@ -2,8 +2,8 @@ apiVersion: v1
 description: VRRP-based failover VIP for Kubernetes Ingress Controllers and API servers
 icon: https://raw.githubusercontent.com/janeczku/keepalived-ingress-vip/master/chart/icon.png
 name: keepalived-ingress-vip
-version: v0.1.5
-appVersion: v0.1.5
+version: v0.1.6
+appVersion: v0.1.6
 home: https://www.github.com/janeczku/keepalived-ingress-vip
 sources:
 - https://www.github.com/janeczku/keepalived-ingress-vip

@@ -172,7 +172,7 @@ metadata:
   namespace: kube-system
 spec:
   chart: keepalived-ingress-vip
-  version: v0.1.5
+  version: v0.1.6
   repo: https://janeczku.github.io/helm-charts/
   targetNamespace: kube-system
   valuesContent: |-
@@ -217,7 +217,7 @@ The following table lists the configurable parameters of this chart and their de
 | `keepalived.checkKubeApiFailAfter`  | Number of failed K8s API health checks before reducing priority of the keepalived instance (VIP may then be moved to a higher priority instance) | `5` |
 | `kind`                              | The deployment resource to create for the Keepalived pods (one of 'Deployment' or 'Daemonset') | `Deployment`          |
 | `image.repository`                  | Image repository to pull from                                    | `janeczku/keepalived-ingress-vip`                   |
-| `image.tag`                         | Image tag to pull                                                | `v0.1.5`                                            |
+| `image.tag`                         | Image tag to pull                                                | `v0.1.6`                                            |
 | `image.pullPolicy`                  | Image pull policy                                                | `IfNotPresent`                                      |
 | `rbac.create`                       | Whether to create the required RBAC resources                    | `true`                                              |
 | `rbac.pspEnabled`                   | Whether to create the required PodSecurityPolicy                 | `false`                                             |
