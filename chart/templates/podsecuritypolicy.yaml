@@ -12,7 +12,7 @@ spec:
   privileged: false
   allowedCapabilities: ["NET_ADMIN"]
   fsGroup:
-    rule: RunAsAny
+    rule: 'RunAsAny'
   volumes:
     - 'secret'
   allowPrivilegeEscalation: false
@@ -22,7 +22,7 @@ spec:
   runAsUser:
     rule: 'RunAsAny'
   seLinux:
-    rule: RunAsAny
+    rule: 'RunAsAny'
   supplementalGroups:
-    rule: RunAsAny
+    rule: 'RunAsAny'
 {{- end }}
