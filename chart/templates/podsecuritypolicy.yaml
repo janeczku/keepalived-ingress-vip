@@ -10,7 +10,9 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   privileged: false
-  AllowedCapabilities: ["NET_ADMIN"]
+  allowedCapabilities: ["NET_ADMIN"]
+  fsGroup:
+    rule: RunAsAny
   volumes:
     - 'secret'
   allowPrivilegeEscalation: false
@@ -19,4 +21,8 @@ spec:
   hostPID: false
   runAsUser:
     rule: 'RunAsAny'
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
 {{- end }}
