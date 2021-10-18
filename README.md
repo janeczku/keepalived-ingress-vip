@@ -143,7 +143,7 @@ keepalived:
   vipAddressCidr: "172.16.135.2/21"
   
   # Health check the local K8s API service (URL might vary depending on k8s distro)
-  checkServiceUrl: http://127.0.0.1:6443/healthz
+  checkServiceUrl: https://127.0.0.1:6443/healthz
   checkKubelet: false
   checkKubeApi: false
 
