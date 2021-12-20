@@ -96,7 +96,7 @@ Generate the pod tolerations
 {{ toYaml .Values.pod.tolerations }}
 {{ end }}
 {{- if .Values.pod.tolerateMasterTaints -}}
-- key: "node-role.kubernetes.io/controlplane"
+- key: "node-role.kubernetes.io/control-plane"
   operator: "Equal"
   value: "true"
   effect: "NoSchedule"

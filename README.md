@@ -153,7 +153,7 @@ kind: Daemonset
 pod:
   # Ensure that the VIP is only scheduled on master nodes
   nodeSelector:
-    node-role.kubernetes.io/controlplane: "true"
+    node-role.kubernetes.io/control-plane: "true"
   # Tolerate master taints 
   tolerateMasterTaints: true
 ```
